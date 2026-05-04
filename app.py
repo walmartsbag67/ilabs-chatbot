@@ -43,10 +43,10 @@ st.markdown("""
 @st.cache_resource
 def init_connections():
     # Gemini - Fixed for Streamlit Secrets
-    client = genai.Client(api_key=st.secrets["AIzaSyCVXOTJD9G_dk8WRlpGMbiRNtbsdhuNWkg"])
+    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
     
     # Pinecone - Fixed for Streamlit Secrets
-    pc = Pinecone(api_key=st.secrets["pcsk_2fERb7_P UnzAn8cRe52YB5DbGMhL7wpzzRi8zzoW3H8dq7idGhVYza78fiBtAE7Uk3BTxD"])
+    pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
     index = pc.Index("printer-chatbot")
     
     # Embedding Model
