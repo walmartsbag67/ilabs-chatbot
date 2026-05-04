@@ -49,7 +49,6 @@ def get_context(query):
     return context
 
 # --- 4. CHAT INTERFACE ---
-st,image("Sunway-iLabs-Logo-AI-2025-837x1024 (1)")
 st.title("iLabs Smart Assistant")
 st.caption("Expert guidance for 3D Printing and Makerspace technology.")
 
