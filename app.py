@@ -138,7 +138,7 @@ if prompt := st.chat_input("Ask about the 3D printers or Laser cutter..."):
     """
 
     with st.chat_message("assistant"):
-        response = client.models.generate_content(model="gemini-3-flash", contents=full_prompt)
+        response = client.models.generate_content(model="gemini-2.0-flash", contents=full_prompt)
         st.markdown(response.text)
         st.session_state.messages.append({"role": "assistant", "content": response.text})
 
