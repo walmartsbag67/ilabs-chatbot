@@ -47,7 +47,7 @@ def init_connections():
     
     # Pinecone - Fixed for Streamlit Secrets
     pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
-    index = pc.Index("printer-chatbot")
+    index = pc.Index("printer-chatbot") 
     
     # Embedding Model
     embed_model = SentenceTransformer('all-MiniLM-L6-v2')
