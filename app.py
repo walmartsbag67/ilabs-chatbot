@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 import os
 
 # --- 1. SETTINGS & STYLING ---
-st.set_page_config(page_title="iLabs Smart Assistant", page_icon="🤖")
+st.set_page_config(page_title="iLabs Smart Assistant", page_icon="Sunway-iLabs-Logo-AI-2025-837x1024 (1)")
 
 st.markdown("""
     <style>
@@ -49,7 +49,8 @@ def get_context(query):
     return context
 
 # --- 4. CHAT INTERFACE ---
-st.title("🤖 iLabs Smart Assistant")
+st,image("Sunway-iLabs-Logo-AI-2025-837x1024 (1)")
+st.title("iLabs Smart Assistant")
 st.caption("Expert guidance for 3D Printing and Makerspace technology.")
 
 # Initialize chat history
@@ -81,7 +82,7 @@ if prompt := st.chat_input("Ask about the Ultimaker 3 or Laser Cutter..."):
     with st.chat_message("assistant"):
         try:
             response = client.models.generate_content(
-                model="gemini-1.5-flash", 
+                model="gemini-2.0-flash", 
                 contents=full_prompt
             )
             assistant_response = response.text
