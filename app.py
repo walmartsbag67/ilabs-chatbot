@@ -1,11 +1,13 @@
 import streamlit as st
-from google import genai
+import vertexai
+from vertexai.generative_models import GenerativeModel
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 import os
+import json
 
 # --- 1. SETTINGS & STYLING ---
-st.set_page_config(page_title="iLabs Smart Assistant", page_icon="Sunway-iLabs-Logo-AI-2025-837x1024 (1)")
+st.set_page_config(page_title="iLabs Smart Assistant", page_icon="🤖")
 
 st.markdown("""
     <style>
@@ -21,71 +23,94 @@ st.markdown("""
 # --- 2. INITIALIZE SERVICES ---
 @st.cache_resource
 def init_connections():
-    # Initialize Gemini Client using Secrets label
-    client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+    # 1. Handle Google Credentials from Streamlit Secrets
+    if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
+        # Load the JSON string from secrets
+        creds_dict = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+        
+        # Vertex AI requires a physical file path for the Service Account key
+        # We create a temporary file in the Streamlit environment
+        with open("google_creds.json", "w") as f:
+            json.dump(creds_dict, f)
+        
+        # Set the environment variable to point to this temporary file
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_creds.json"
+    else:
+        st.error("Google Credentials not found in Secrets! Please check your Streamlit Cloud settings.")
+        st.stop()
+
+    # 2. Initialize Vertex AI
+    # Automatically pulls the project_id from your credentials dictionary
+    vertexai.init(project=creds_dict["project_id"], location="us-central1")
+    model = GenerativeModel("gemini-1.5-flash") 
     
-    # Initialize Pinecone using Secrets label
+    # 3. Initialize Pinecone
     pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
     index = pc.Index("printer-chatbot")
     
-    # Load Embedding Model
+    # 4. Load Embedding Model
+    # Note: Ensure 'sentence-transformers' is in your requirements.txt
     embed_model = SentenceTransformer('all-MiniLM-L6-v2')
     
-    return client, index, embed_model
+    return model, index, embed_model
 
-client, index, embed_model = init_connections()
+# Call the function to set everything up
+model, index, embed_model = init_connections()
 
 # --- 3. HELPER FUNCTIONS ---
 def get_context(query):
-    # Convert user query to vector
+    # Convert the user query into a vector (embedding)
     query_em = embed_model.encode(query).tolist()
     
-    # Search Pinecone for relevant 3D printer data
+    # Search Pinecone for the most relevant data matches
     results = index.query(vector=query_em, top_k=3, include_metadata=True)
     
+    # Combine the matching texts into a single context string
     context = ""
     for match in results['matches']:
         context += match['metadata']['text'] + "\n"
     return context
 
 # --- 4. CHAT INTERFACE ---
-st.title("iLabs Smart Assistant")
+st.title("🤖 iLabs Smart Assistant")
 st.caption("Expert guidance for 3D Printing and Makerspace technology.")
 
-# Initialize chat history
+# Initialize chat history session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
+# Display previous messages from history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User Input
+# User Input Box
 if prompt := st.chat_input("Ask about the Ultimaker 3 or Laser Cutter..."):
-    # Add user message to history
+    # Add user message to state and display
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # RAG Logic: Get context from Pinecone
+    # RAG (Retrieval-Augmented Generation) Logic
+    # 1. Retrieve relevant technical context from Pinecone
     context = get_context(prompt)
     
+    # 2. Build the augmented prompt
     full_prompt = f"""
     You are the iLabs Smart Assistant. Use the following context to answer the user's question accurately.
+    If the answer isn't in the context, use your general knowledge but mention you are doing so.
+    
     Context: {context}
     User Question: {prompt}
     """
 
-    # Generate AI Response
+    # 3. Generate AI Response using Vertex AI
     with st.chat_message("assistant"):
         try:
-            response = client.models.generate_content(
-                model="gemini-2.0-flash", 
-                contents=full_prompt
-            )
+            response = model.generate_content(full_prompt)
             assistant_response = response.text
             st.markdown(assistant_response)
+            # Add assistant response to history
             st.session_state.messages.append({"role": "assistant", "content": assistant_response})
         except Exception as e:
-            st.error(f"An error occurred: {e}")
+            st.error(f"An error occurred during response generation: {e}")
