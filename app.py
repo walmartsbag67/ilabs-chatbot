@@ -69,8 +69,6 @@ except Exception as e:
     # 4. Load Embedding Model
     # Note: Ensure 'sentence-transformers' is in your requirements.txt
     embed_model = SentenceTransformer('all-MiniLM-L6-v2')
-    
-    return model, index, embed_model
 
 # Call the function to set everything up
 model, index, embed_model = init_connections()
