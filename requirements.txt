@@ -1,6 +1,6 @@
 streamlit
 google-cloud-aiplatform
-pinecone-client
+pinecone
 sentence-transformers
 torch
 torchvision
