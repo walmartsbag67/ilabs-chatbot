@@ -56,8 +56,7 @@ except Exception as e:
     # Automatically pulls the project_id from your credentials dictionary
     project_id = st.secrets["PROJECT_ID"]
     vertexai.init(project=project_id, location="us-central1", credentials=credentials)
-    ```
-    
+   
     # Only then can you call this:
     model = GenerativeModel("gemini-1.5-flash")
     
