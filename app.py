@@ -62,7 +62,7 @@ except Exception as e:
     
     # 3. Initialize Pinecone
     # TEMPORARY DEBUG LINE (Delete after checking)
-st.write(f"Debug: Key starts with {st.secrets['PINECONE_API_KEY'][:5]}...")
+
     pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
     index = pc.Index("printer-chatbot")
     
