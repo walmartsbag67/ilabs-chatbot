@@ -42,12 +42,28 @@ def init_connections():
         st.error("Google Credentials not found in Secrets! Please check your Streamlit Cloud settings.")
         st.stop()
 
+        # This line MUST be present for the message to show up
+model, index, embed_model = init_connections()
+
+# This part shows the success message
+try:
+    init_connections()
+    st.success("Credentials loaded successfully!")
+except Exception as e:
+    st.error(f"Failed to load credentials: {e}")
+
     # 2. Initialize Vertex AI
     # Automatically pulls the project_id from your credentials dictionary
-    vertexai.init(project=creds_dict["project_id"], location="us-central1")
-    model = GenerativeModel("gemini-1.5-flash") 
+    project_id = st.secrets["PROJECT_ID"]
+    vertexai.init(project=project_id, location="us-central1", credentials=credentials)
+    ```
+    
+    # Only then can you call this:
+    model = GenerativeModel("gemini-1.5-flash")
     
     # 3. Initialize Pinecone
+    # TEMPORARY DEBUG LINE (Delete after checking)
+st.write(f"Debug: Key starts with {st.secrets['PINECONE_API_KEY'][:5]}...")
     pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
     index = pc.Index("printer-chatbot")
     

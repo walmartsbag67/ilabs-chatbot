@@ -5,7 +5,7 @@ from pinecone import Pinecone
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Connect to Pinecone
-pc = Pinecone(api_key="pcsk_2fERb7_PUnzAn8cRe52YB5DbGMhL7wpzzRi8zzoW3H8dq7idGhVYza78fiBtAE7Uk3BTxD")
+pc = Pinecone(api_key="PINECONE_API_KEY")
 index = pc.Index("printer-chatbot")
 
 while True:
