@@ -23,21 +23,21 @@ st.markdown("""
 # --- 2. INITIALIZE SERVICES ---
 @st.cache_resource
 def init_connections():
-    # 1. Handle Google Credentials from Streamlit Secrets
+    # 1. Handle Google Credentials from Streamlit S
     if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
-    creds_dict = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-
-    if "private_key" in creds_dict:
-        # This fixes the PEM formatting error by converting escaped newlines
-        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+        # Load the string from secrets into a dictionary
+        creds_dict = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
         
-        # Save the cleaned dictionary to a temporary file
+        # FIX: Replace double-escaped newlines with actual newlines
+        if "private_key" in creds_dict:
+            creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+        
+        # Create a temporary file that the Google library can read
         with open("google_creds.json", "w") as f:
             json.dump(creds_dict, f)
-    
-        # Tell Google Cloud where to find the file
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_creds.json"    
-
+        
+        # Set the environment variable to point to this temporary file
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_creds.json"
     else:
         st.error("Google Credentials not found in Secrets! Please check your Streamlit Cloud settings.")
         st.stop()
