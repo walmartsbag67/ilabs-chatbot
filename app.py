@@ -25,16 +25,19 @@ st.markdown("""
 def init_connections():
     # 1. Handle Google Credentials from Streamlit Secrets
     if "GOOGLE_APPLICATION_CREDENTIALS_JSON" in st.secrets:
-        # Load the JSON string from secrets
-        creds_dict = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+    creds_dict = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+
+    if "private_key" in creds_dict:
+        # This fixes the PEM formatting error by converting escaped newlines
+        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
         
-        # Vertex AI requires a physical file path for the Service Account key
-        # We create a temporary file in the Streamlit environment
+        # Save the cleaned dictionary to a temporary file
         with open("google_creds.json", "w") as f:
             json.dump(creds_dict, f)
-        
-        # Set the environment variable to point to this temporary file
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_creds.json"
+    
+        # Tell Google Cloud where to find the file
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_creds.json"    
+
     else:
         st.error("Google Credentials not found in Secrets! Please check your Streamlit Cloud settings.")
         st.stop()
@@ -85,7 +88,7 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # User Input Box
-if prompt := st.chat_input("Ask about the Ultimaker 3 or Laser Cutter..."):
+if prompt := st.chat_input("Ask anything"):
     # Add user message to state and display
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
