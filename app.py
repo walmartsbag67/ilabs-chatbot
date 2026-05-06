@@ -1,53 +1,57 @@
-from google.oauth2 import service_account
 import streamlit as st
-import os
 import json
+from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 from google import genai
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 
-# 1. Page Configuration
-st.set_page_config(page_title="iLabs Smart Assistant", layout="wide")
+# Page Config
+st.set_page_config(page_title="iLabs Smart Assistant", page_icon="🤖")
 st.title("🤖 iLabs Smart Assistant")
 st.caption("Expert guidance for 3D Printing and Makerspace technology.")
 
-# 2. Initialize Connections (Cached for performance)
 @st.cache_resource
 def init_connections():
     try:
-        # 1. Load the raw dictionary from secrets
+        # 1. Load Google Credentials from Streamlit Secrets
         creds_info = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
 
-        # 2. Convert that dictionary into a proper Credentials Object
-        # This is what fixes the 'dict object has no attribute expired' error
-        google_creds = service_account.Credentials.from_service_account_info(creds_info)
+        # 2. Define Scopes and Convert to Credentials Object
+        # This fixes the 'invalid_scope' and 'dict has no attribute expired' errors
+        scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+        google_creds = service_account.Credentials.from_service_account_info(
+            creds_info, 
+            scopes=scopes
+        )
         
-        # 3. Initialize the Client using the 'google_creds' object
+        # 3. Initialize the Gemini 2.5 Flash Client
         client = genai.Client(
             vertexai=True,
             project=st.secrets["PROJECT_ID"],
-            location="asia-southeast1", 
-            credentials=google_creds # <--- Use the object here, not 'creds_info'
+            location="asia-southeast1",
+            credentials=google_creds
         )
         
-        # Initialize Pinecone
+        # 4. Initialize Pinecone
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
         index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
         
-        # Initialize Embedding Model for Search
+        # 5. Initialize Embedding Model for Search
         embed_model = SentenceTransformer('all-MiniLM-L6-v2')
         
         return client, index, embed_model
     except Exception as e:
         st.error(f"Failed to initialize system: {e}")
         return None, None, None
-    
+
+# Initialize connections
 client, index, embed_model = init_connections()
 
 if client:
     st.success("iLabs System Online!")
 
-# 3. Chat History Setup
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -56,50 +60,41 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 4. Handling User Input
+# User Input
 if prompt := st.chat_input("Ask about Ultimaker 3D printers or Laser Cutters..."):
-    # Add user message to history
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # RAG: Search Pinecone for relevant iLabs documentation
-    with st.spinner("Searching iLabs knowledge base..."):
-        try:
-            query_embedding = embed_model.encode(prompt).tolist()
-            results = index.query(vector=query_embedding, top_k=3, include_metadata=True)
-            
-            # Combine search results into a context string
-            context = "\n".join([res['metadata']['text'] for res in results['matches'] if 'text' in res['metadata']])
-        except Exception as e:
-            st.error(f"Pinecone Search Error: {e}")
-            context = "No context available."
-
-    # 5. Generate AI Response using Direct Vertex AI
     with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        
         try:
-            # System Instruction to keep the AI focused
+            # 1. Generate Embedding for the prompt
+            query_embedding = embed_model.encode(prompt).tolist()
+
+            # 2. Search Pinecone for context
+            results = index.query(vector=query_embedding, top_k=3, include_metadata=True)
+            context = "\n".join([res['metadata']['text'] for res in results['matches']])
+
+            # 3. Build System Instruction
             instruction = f"""
-            You are the iLabs Smart Assistant. 
-            Use the following context to answer the user: {context}
+            You are the Sunway iLabs Smart Assistant. 
+            Use the following context from our technical manuals to answer the user:
+            {context}
             
-            Rules:
-            1. If the answer is not in the context, say you don't know but suggest contacting a mentor.
-            2. Be professional and encouraging.
-            3. Use a mix of English and Malay where appropriate.
+            If the answer isn't in the context, politely say you don't have that specific data.
             """
-            
+
+            # 4. Generate Content using Gemini 2.5 Flash
             response = client.models.generate_content(
-                model="gemini-2.5-flash", # Using the latest stable Flash model
+                model="gemini-2.5-flash",
                 contents=prompt,
                 config={'system_instruction': instruction}
             )
-            
-            final_text = response.text
-            response_placeholder.markdown(final_text)
-            st.session_state.messages.append({"role": "assistant", "content": final_text})
-            
+
+            full_response = response.text
+            st.markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
+
         except Exception as e:
-            st.error(f"Error generating response: {e}")
+            error_msg = f"Error generating response: {e}"
+            st.error(error_msg)
