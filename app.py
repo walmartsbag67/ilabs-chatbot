@@ -15,17 +15,19 @@ st.caption("Expert guidance for 3D Printing and Makerspace technology.")
 @st.cache_resource
 def init_connections():
     try:
-        # Load Google Credentials from Streamlit Secrets
-        creds_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+        # 1. Load the raw dictionary from secrets
+        creds_info = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
 
-        credentials = service_account.Credentials.from_service_account_info(creds_info)
+        # 2. Convert that dictionary into a proper Credentials Object
+        # This is what fixes the 'dict object has no attribute expired' error
+        google_creds = service_account.Credentials.from_service_account_info(creds_info)
         
-        # Initialize the New Direct Gen AI Client (Bypasses Agent Deployment)
+        # 3. Initialize the Client using the 'google_creds' object
         client = genai.Client(
             vertexai=True,
             project=st.secrets["PROJECT_ID"],
-            location="asia-southeast1", # Fast region for Malaysia
-            credentials=creds_json
+            location="asia-southeast1", 
+            credentials=google_creds # <--- Use the object here, not 'creds_info'
         )
         
         # Initialize Pinecone
@@ -39,7 +41,7 @@ def init_connections():
     except Exception as e:
         st.error(f"Failed to initialize system: {e}")
         return None, None, None
-
+    
 client, index, embed_model = init_connections()
 
 if client:
