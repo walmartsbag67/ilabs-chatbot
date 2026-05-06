@@ -1,3 +1,4 @@
+from google.oauth2 import service_account
 import streamlit as st
 import os
 import json
@@ -16,6 +17,8 @@ def init_connections():
     try:
         # Load Google Credentials from Streamlit Secrets
         creds_json = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
+
+        credentials = service_account.Credentials.from_service_account_info(creds_info)
         
         # Initialize the New Direct Gen AI Client (Bypasses Agent Deployment)
         client = genai.Client(
