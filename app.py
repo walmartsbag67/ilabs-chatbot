@@ -86,32 +86,47 @@ if prompt := st.chat_input("Ask about Sunway iLabs, Ultimaker 3D printers or Las
 
     with st.chat_message("assistant"):
         try:
-            # 1. Generate Embedding
+            # 1. Search Logic
             embed_result = client.models.embed_content(
-                model="text-embedding-004", # Double check this name in GC Console
+                model="text-embedding-004",
                 contents=prompt
             )
-            query_embedding = embed_result.embeddings[0].values
+            query_vector = embed_result.embeddings[0].values
+            results = index.query(vector=query_vector, top_k=1, include_metadata=True)
+            manual_context = results['matches'][0]['metadata']['text'] if results['matches'] else ""
 
-            # 2. Search Pinecone
-            search_results = index.query(
-                vector=query_embedding, 
-                top_k=3, 
-                include_metadata=True
-            )
+            core_knowledge = load_core_knowledge()
+
+            # 2. The "Unbreakable" System Instruction
+            # We put the URL at the VERY BOTTOM so the AI sees it last
+            system_instruction = f"""
+            You are the Sunway iLabs Smart Assistant.
             
-            context = "\n---\n".join([res['metadata']['text'] for res in search_results['matches']])
+            # STRICT RULES:
+1. You are a CLOSED-KNOWLEDGE system. 
+2. Use ONLY the information provided in the "LOCAL DATA" section below.
+3. If a user asks a question that is NOT covered in the LOCAL DATA, you must say: "I'm sorry, I don't have information on that specific topic in my current database."
+4. DO NOT use your own internal knowledge to answer questions. 
+5. DO NOT mention "mandatory training" or "certification" unless it is in the LOCAL DATA.
 
-            # 3. Build Instruction
-            system_instruction = f"You are the iLabs Assistant. Use this context: {context}"
+# LOCAL DATA FROM model.md:
+{core_knowledge}
 
-            # 4. Generate Response (Updated model name to stable version)
-            response = client.models.generate_content(
-                model="gemini-2.5-flash", # Changed from 2.5 to 1.5 for stability
-                contents=prompt,
-                config={'system_instruction': system_instruction}
-            )
+# ADDITIONAL CONTEXT:
+{manual_context}
+"""
 
+# 3. Apply the "Strictness" settings
+response = client.models.generate_content(
+    model="gemini-1.5-flash",
+    contents=prompt,
+    config={
+        'system_instruction': system_instruction,
+        'temperature': 0.0,      # CRITICAL: 0.0 makes it a literal robot
+        'top_p': 0.1,            # Limits word variety
+        'max_output_tokens': 250 # Keeps it from rambling
+    }
+)
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
 
