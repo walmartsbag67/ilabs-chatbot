@@ -4,12 +4,7 @@ from google.oauth2 import service_account
 from google import genai
 from pinecone import Pinecone
 
-def load_core_knowledge():
-    # This function looks for your model.md file and reads its content
-    if os.path.exists('model.md'):
-        with open('model.md', 'r', encoding='utf-8') as f:
-            return f.read()
-    return "Standard Sunway iLabs safety procedures."
+
 
 # --- Page Configuration ---
 st.set_page_config(page_title="iLabs Smart Assistant", page_icon="Sunway-iLabs-Logo-AI-2025-837x1024 (1).png")
