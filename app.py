@@ -116,19 +116,19 @@ if prompt := st.chat_input("Ask about Sunway iLabs, Ultimaker 3D printers or Las
 {manual_context}
 """
 
-# 3. Apply the "Strictness" settings
 response = client.models.generate_content(
-    model="gemini-1.5-flash",
-    contents=prompt,
-    config={
-        'system_instruction': system_instruction,
-        'temperature': 0.0,      # CRITICAL: 0.0 makes it a literal robot
-        'top_p': 0.1,            # Limits word variety
-        'max_output_tokens': 250 # Keeps it from rambling
-    }
-)
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config={
+                    'system_instruction': system_instruction,
+                    'temperature': 0.0,
+                    'max_output_tokens': 200
+                }
+            )
+            
+            full_response = response.text
+            st.markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-        except Exception as e:
-            st.error(f"Error: {e}")
+        except Exception as e: # <--- THIS IS THE MISSING PIECE
+            st.error(f"Error generating response: {e}")
