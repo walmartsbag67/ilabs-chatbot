@@ -16,6 +16,21 @@ with col2:
         </h1>
     """, unsafe_allow_html=True)
 
+with st.sidebar:
+    st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=100)
+    st.header("Lab Status")
+    st.success("Ultimaker 3: ONLINE")
+    st.success("Laser Cutter 5030: ONLINE")
+
+# --- 4. CHAT LOGIC ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+        
 # --- Initialize Connections ---
 @st.cache_resource
 def init_connections():
@@ -36,7 +51,6 @@ def init_connections():
             project=st.secrets["PROJECT_ID"],
             location="asia-southeast1",
             credentials=google_creds,
-            http_options={'api_version': 'v1beta'}
         )
         
         # 3. Initialize Pinecone
@@ -52,6 +66,8 @@ client, index = init_connections()
 
 if client:
     st.success("iLabs System Online!")
+
+
 
 # --- Chat Interface ---
 if "messages" not in st.session_state:
