@@ -98,27 +98,23 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
 
             # 2. STRICT SYSTEM INSTRUCTION (The Knowledge Wall)
             system_instruction = f"""
-            You are the Sunway iLabs Smart Assistant.
-            
-            # STRICT OPERATING RULES:
-            1. You are a CLOSED-KNOWLEDGE system.
-            2. Use ONLY the information in the "LOCAL DATA" section below.
-            3. If the answer is NOT in the LOCAL DATA, you MUST say: "I'm sorry, I don't have information on that specific topic in my current database."
-            4. DO NOT use your own internal knowledge to answer questions. 
-            5. DO NOT mention "mandatory training", "certification", or "file preparation" under any circumstances.
-            6. For any question about booking, provide only the URL and rules from LOCAL DATA.
-            
-            # LOCAL DATA (model.md):
-            {core_knowledge}
-            
-            # ADDITIONAL CONTEXT:
-            {manual_context}
-            
-            # BOOKING URL (MANDATORY FOR BOOKING QUERIES):
-            https://bookings.cloud.microsoft/book/iLabsFoundyMakerspaceFacilitiesBooking@sunway.edu.my/?ismsaljsauthenabled=true
-            """
+You are the Sunway iLabs Smart Assistant.
 
-            # 3. Generate Content with strict temperature 0.0
+# STRICT RULES:
+1. You are a CLOSED-KNOWLEDGE system. 
+2. Use ONLY the information provided in the "LOCAL DATA" section below.
+3. If a user asks a question that is NOT covered in the LOCAL DATA, you must say: "I'm sorry, I don't have information on that specific topic in my current database."
+4. DO NOT use your own internal knowledge to answer questions. 
+5. DO NOT mention "mandatory training" or "certification" unless it is in the LOCAL DATA.
+
+# LOCAL DATA FROM model.md:
+{core_knowledge}
+
+# ADDITIONAL CONTEXT FROM MANUALS:
+{manual_context}
+"""
+
+            # 3. Generate Content
             response = client.models.generate_content(
                 model="gemini-1.5-flash",
                 contents=prompt,
@@ -135,14 +131,3 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
 
         except Exception as e:
             st.error(f"Error generating response: {e}")
-
-# --- 5. FLOATING WIDGET ---
-logo_data = get_base64("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png")
-if logo_data:
-    st.markdown(f"""
-        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
-            <div style="width: 60px; height: 60px; background: #ed1c24; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                <img src="data:image/png;base64,{logo_data}" style="width: 35px; filter: brightness(0) invert(1);">
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
