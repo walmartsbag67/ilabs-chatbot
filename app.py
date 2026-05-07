@@ -1,130 +1,127 @@
 import streamlit as st
-import json
-from google.oauth2 import service_account
+import os
+import base64
 from google import genai
 from pinecone import Pinecone
 
+# --- 1. CORE LOGIC & FUNCTION DEFINITIONS ---
+# (Functions must be defined at the top to avoid NameErrors)
 
+def load_core_knowledge():
+    """Reads the local model.md file to use as the primary knowledge source."""
+    if os.path.exists('model.md'):
+        with open('model.md', 'r', encoding='utf-8') as f:
+            return f.read()
+    return "No local knowledge found. Please check model.md."
 
-# --- Page Configuration ---
-st.set_page_config(page_title="iLabs Smart Assistant", page_icon="Sunway-iLabs-Logo-AI-2025-837x1024 (1).png")
-col1, col2 = st.columns([1, 4])
-with col1:
-    st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=80)
-with col2:
-    st.markdown("""
-        <h1 style='margin-bottom: 50px; font-size: 42px'>
-            iLabs Smart Assistant
-        </h1>
-    """, unsafe_allow_html=True)
+def get_base64(file_path):
+    """Converts local image to base64 for the UI."""
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return ""
 
-with st.sidebar:
-    st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=100)
-    st.header("Lab Status")
-    st.success("Ultimaker 3: ONLINE")
-    st.success("Laser Cutter 5030: ONLINE")
-
-# --- 4. CHAT LOGIC ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display history
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-        
-# --- Initialize Connections ---
+# --- 2. INITIALIZE SERVICES ---
 @st.cache_resource
 def init_connections():
     try:
-        # 1. Load Google Credentials from Streamlit Secrets
-        creds_info = json.loads(st.secrets["GOOGLE_APPLICATION_CREDENTIALS_JSON"])
-        
-        # Define Scopes for Vertex AI
-        scopes = ["https://www.googleapis.com/auth/cloud-platform"]
-        google_creds = service_account.Credentials.from_service_account_info(
-            creds_info, 
-            scopes=scopes
-        )
-        
-        # 2. Initialize Gemini 2.5 Flash Client
+        # Gemini Client with v1beta versioning for stability
         client = genai.Client(
-            vertexai=True,
-            project=st.secrets["PROJECT_ID"],
-            location="asia-southeast1",
-            credentials=google_creds,
+            api_key=st.secrets["GEMINI_API_KEY"],
+            http_options={'api_version': 'v1beta'}
         )
-        
-        # 3. Initialize Pinecone
+        # Pinecone Connection
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
         index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
-        
         return client, index
     except Exception as e:
-        st.error(f"Initialization Error: {e}")
+        st.error(f"Connection Error: {e}")
         return None, None
 
+# Run initialization
 client, index = init_connections()
+core_knowledge = load_core_knowledge()
 
-if client:
-    st.success("iLabs System Online!")
+# --- 3. UI STYLING & LAYOUT ---
+st.set_page_config(
+    page_title="iLabs Smart Assistant", 
+    layout="wide", 
+    page_icon="Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"
+)
 
+st.markdown("""
+    <style>
+    .main { background-color: #f5f7f9; }
+    .stChatMessage { border-radius: 15px; }
+    .block-container { padding-top: 1rem !important; }
+    </style>
+    """, unsafe_allow_html=True)
 
+col1, col2 = st.columns([0.15, 0.85])
+with col1:
+    if os.path.exists("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"):
+        st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=85)
 
-# --- Chat Interface ---
+with col2:
+    st.markdown("""
+        <div style='margin-top: 10px;'>
+            <h1 style='margin: 0;'>Sunway iLabs AI Assistant</h1>
+            <p style='color: #808495;'>Grounded Knowledge System for Makerspace Labs</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# --- 4. CHAT INTERFACE ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display history
+# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- User Input & Logic ---
-if prompt := st.chat_input("Ask about Sunway iLabs, Ultimaker 3D printers or Laser Cutters"):
+# User Input Logic
+if prompt := st.chat_input("Ask about equipment or bookings..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            # 1. Search Logic
+            # 1. RAG Search (Retrieval)
             embed_result = client.models.embed_content(
                 model="text-embedding-004",
                 contents=prompt
             )
             query_vector = embed_result.embeddings[0].values
-            results = index.query(vector=query_vector, top_k=1, include_metadata=True)
-            manual_context = results['matches'][0]['metadata']['text'] if results['matches'] else ""
+            search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
+            manual_context = search_results['matches'][0]['metadata']['text'] if search_results['matches'] else ""
 
-            core_knowledge = load_core_knowledge()
-
-            # 2. The "Unbreakable" System Instruction
+            # 2. STRICT SYSTEM INSTRUCTION (The Knowledge Wall)
             system_instruction = f"""
-You are the Sunway iLabs Smart Assistant.
+            You are the Sunway iLabs Smart Assistant.
+            
+            # STRICT OPERATING RULES:
+            1. You are a CLOSED-KNOWLEDGE system.
+            2. Use ONLY the information in the "LOCAL DATA" section below.
+            3. If the answer is NOT in the LOCAL DATA, you MUST say: "I'm sorry, I don't have information on that specific topic in my current database."
+            4. DO NOT mention "mandatory training", "certification", or "file preparation" unless explicitly written in LOCAL DATA.
+            5. For any question about booking, provide only the URL and rules from LOCAL DATA.
+            
+            # LOCAL DATA (from model.md):
+            {core_knowledge}
+            
+            # ADDITIONAL CONTEXT (from technical manuals):
+            {manual_context}
+            """
 
-# STRICT RULES:
-1. You are a CLOSED-KNOWLEDGE system. 
-2. Use ONLY the information provided in the "LOCAL DATA" section below.
-3. If a user asks a question that is NOT covered in the LOCAL DATA, you must say: "I'm sorry, I don't have information on that specific topic in my current database."
-4. DO NOT use your own internal knowledge to answer questions. 
-5. DO NOT mention "mandatory training" or "certification" unless it is in the LOCAL DATA.
-
-# LOCAL DATA FROM model.md:
-{core_knowledge}
-
-# ADDITIONAL CONTEXT:
-{manual_context}
-"""
-
-            # This part MUST be indented to stay inside the 'try' block
+            # 3. Generate Content with strict temperature 0.0
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
                 config={
                     'system_instruction': system_instruction,
                     'temperature': 0.0,
-                    'max_output_tokens': 200
+                    'max_output_tokens': 250
                 }
             )
             
@@ -132,6 +129,5 @@ You are the Sunway iLabs Smart Assistant.
             st.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-        except Exception as e: 
-            # This must align vertically with the 'try' keyword
+        except Exception as e:
             st.error(f"Error generating response: {e}")
