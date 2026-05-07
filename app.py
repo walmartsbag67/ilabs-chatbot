@@ -7,6 +7,18 @@ from pinecone import Pinecone
 # --- 1. CORE LOGIC & FUNCTION DEFINITIONS ---
 # (Must be at the top to prevent "NameError")
 
+# This must sit above where you call it.
+def load_core_knowledge():
+    """Reads the local model.md file."""
+    if os.path.exists('model.md'):
+        with open('model.md', 'r', encoding='utf-8') as f:
+            return f.read()
+    return "Standard Sunway iLabs safety procedures."
+
+# --- STEP 2: NOW CALL THE FUNCTION ---
+# Python now knows what 'load_core_knowledge' is.
+core_knowledge = load_core_knowledge()
+
 def load_core_knowledge():
     """Reads the local model.md file to use as the primary knowledge source."""
     if os.path.exists('model.md'):
