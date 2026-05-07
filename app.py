@@ -97,21 +97,6 @@ if prompt := st.chat_input("Ask about Sunway iLabs, Ultimaker 3D printers or Las
 
             core_knowledge = load_core_knowledge()
 
-            try:
-            # 1. Search Logic (Embedding & Pinecone)
-            embed_result = client.models.embed_content(
-                model="text-embedding-004",
-                contents=prompt
-            )
-            query_vector = embed_result.embeddings[0].values
-            
-            search_results = index.query(
-                vector=query_vector, 
-                top_k=2, 
-                include_metadata=True
-            )
-            manual_context = "\n---\n".join([res['metadata']['text'] for res in search_results['matches']])
-
             # 2. The "Unbreakable" System Instruction
             system_instruction = f"""
 You are the Sunway iLabs Smart Assistant.
@@ -126,11 +111,11 @@ You are the Sunway iLabs Smart Assistant.
 # LOCAL DATA FROM model.md:
 {core_knowledge}
 
-# ADDITIONAL CONTEXT FROM MANUALS:
+# ADDITIONAL CONTEXT:
 {manual_context}
 """
 
-            # 3. Generate Content
+            # This part MUST be indented to stay inside the 'try' block
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
@@ -145,5 +130,6 @@ You are the Sunway iLabs Smart Assistant.
             st.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-        except Exception as e:
+        except Exception as e: 
+            # This must align vertically with the 'try' keyword
             st.error(f"Error generating response: {e}")
