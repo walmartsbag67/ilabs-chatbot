@@ -97,12 +97,26 @@ if prompt := st.chat_input("Ask about Sunway iLabs, Ultimaker 3D printers or Las
 
             core_knowledge = load_core_knowledge()
 
-            # 2. The "Unbreakable" System Instruction
-            # We put the URL at the VERY BOTTOM so the AI sees it last
-            system_instruction = f"""
-            You are the Sunway iLabs Smart Assistant.
+            try:
+            # 1. Search Logic (Embedding & Pinecone)
+            embed_result = client.models.embed_content(
+                model="text-embedding-004",
+                contents=prompt
+            )
+            query_vector = embed_result.embeddings[0].values
             
-            # STRICT RULES:
+            search_results = index.query(
+                vector=query_vector, 
+                top_k=2, 
+                include_metadata=True
+            )
+            manual_context = "\n---\n".join([res['metadata']['text'] for res in search_results['matches']])
+
+            # 2. The "Unbreakable" System Instruction
+            system_instruction = f"""
+You are the Sunway iLabs Smart Assistant.
+
+# STRICT RULES:
 1. You are a CLOSED-KNOWLEDGE system. 
 2. Use ONLY the information provided in the "LOCAL DATA" section below.
 3. If a user asks a question that is NOT covered in the LOCAL DATA, you must say: "I'm sorry, I don't have information on that specific topic in my current database."
@@ -112,11 +126,12 @@ if prompt := st.chat_input("Ask about Sunway iLabs, Ultimaker 3D printers or Las
 # LOCAL DATA FROM model.md:
 {core_knowledge}
 
-# ADDITIONAL CONTEXT:
+# ADDITIONAL CONTEXT FROM MANUALS:
 {manual_context}
 """
 
-response = client.models.generate_content(
+            # 3. Generate Content
+            response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
                 config={
@@ -130,5 +145,5 @@ response = client.models.generate_content(
             st.markdown(full_response)
             st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-        except Exception as e: # <--- THIS IS THE MISSING PIECE
+        except Exception as e:
             st.error(f"Error generating response: {e}")
