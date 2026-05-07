@@ -6,7 +6,7 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Connect to Pinecone
 pc = Pinecone(api_key="PINECONE_API_KEY")
-index = pc.Index("printer-chatbot")
+index = pc.Index("printer-bot")
 
 while True:
     query = input("\nAsk a question: ")

@@ -30,7 +30,8 @@ def init_connections():
             vertexai=True,
             project=st.secrets["PROJECT_ID"],
             location="asia-southeast1",
-            credentials=google_creds
+            credentials=google_creds,
+            http_options={'api_version': 'v1beta'}  
         )
         
         # 4. Initialize Pinecone

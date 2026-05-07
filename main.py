@@ -6,11 +6,11 @@ from sentence_transformers import SentenceTransformer
 # --- 1. CONFIGURATION ---
 PROJECT_ID = "project-67f295a8-2e8f-45e2-a81"
 PINECONE_API_KEY = "pcsk_2fERb7_PUnzAn8cRe52YB5DbGMhL7wpzzRi8zzoW3H8dq7idGhVYza78fiBtAE7Uk3BTxD" 
-INDEX_NAME = "printer-chatbot" 
+INDEX_NAME = "printer-bot" 
 
 # --- 2. INITIALIZATION ---
 # Initialize Gemini
-client = genai.Client(vertexai=True, project=PROJECT_ID, location="us-central1")
+client = genai.Client(vertexai=True, project=PROJECT_ID, location="asia-southeast1")
 
 # Initialize Pinecone
 pc = Pinecone(api_key=PINECONE_API_KEY)
