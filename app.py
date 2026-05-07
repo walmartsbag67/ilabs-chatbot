@@ -5,14 +5,14 @@ from google import genai
 from pinecone import Pinecone
 
 # --- 1. CORE LOGIC & FUNCTION DEFINITIONS ---
-# (Functions must be defined at the top to avoid NameErrors)
+# (Must be at the top to prevent "NameError")
 
 def load_core_knowledge():
     """Reads the local model.md file to use as the primary knowledge source."""
     if os.path.exists('model.md'):
         with open('model.md', 'r', encoding='utf-8') as f:
             return f.read()
-    return "No local knowledge found. Please check model.md."
+    return "Standard Sunway iLabs safety procedures."
 
 def get_base64(file_path):
     """Converts local image to base64 for the UI."""
@@ -25,12 +25,12 @@ def get_base64(file_path):
 @st.cache_resource
 def init_connections():
     try:
-        # Gemini Client with v1beta versioning for stability
+        # Gemini Client with v1beta versioning for stability in 2026
         client = genai.Client(
             api_key=st.secrets["GEMINI_API_KEY"],
             http_options={'api_version': 'v1beta'}
         )
-        # Pinecone Connection
+        # Pinecone
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
         index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
         return client, index
@@ -70,16 +70,16 @@ with col2:
         </div>
         """, unsafe_allow_html=True)
 
-# --- 4. CHAT INTERFACE ---
+# --- 4. CHAT INTERFACE & LOGIC ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
+# Display history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# User Input Logic
+# User Input
 if prompt := st.chat_input("Ask about equipment or bookings..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -104,14 +104,18 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
             1. You are a CLOSED-KNOWLEDGE system.
             2. Use ONLY the information in the "LOCAL DATA" section below.
             3. If the answer is NOT in the LOCAL DATA, you MUST say: "I'm sorry, I don't have information on that specific topic in my current database."
-            4. DO NOT mention "mandatory training", "certification", or "file preparation" unless explicitly written in LOCAL DATA.
-            5. For any question about booking, provide only the URL and rules from LOCAL DATA.
+            4. DO NOT use your own internal knowledge to answer questions. 
+            5. DO NOT mention "mandatory training", "certification", or "file preparation" under any circumstances.
+            6. For any question about booking, provide only the URL and rules from LOCAL DATA.
             
-            # LOCAL DATA (from model.md):
+            # LOCAL DATA (model.md):
             {core_knowledge}
             
-            # ADDITIONAL CONTEXT (from technical manuals):
+            # ADDITIONAL CONTEXT:
             {manual_context}
+            
+            # BOOKING URL (MANDATORY FOR BOOKING QUERIES):
+            https://bookings.cloud.microsoft/book/iLabsFoundyMakerspaceFacilitiesBooking@sunway.edu.my/?ismsaljsauthenabled=true
             """
 
             # 3. Generate Content with strict temperature 0.0
@@ -121,7 +125,7 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
                 config={
                     'system_instruction': system_instruction,
                     'temperature': 0.0,
-                    'max_output_tokens': 250
+                    'max_output_tokens': 200
                 }
             )
             
@@ -131,3 +135,4 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
 
         except Exception as e:
             st.error(f"Error generating response: {e}")
+
