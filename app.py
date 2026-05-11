@@ -83,9 +83,9 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
 
     with st.chat_message("assistant"):
         try:
-            # 1. Generate Embeddings (Updated to the standard v1 model)
+            # 1. Generate Embeddings (Using the most compatible alias for v1)
             embed_result = client.models.embed_content(
-                model="text-embedding-004", 
+                model="text-embedding-004", # Try this first
                 contents=prompt
             )
             
