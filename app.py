@@ -84,7 +84,7 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
         try:
             # 1. RAG Search (768-dim)
             embed_result = client.models.embed_content(
-                model="text-embedding-005",
+                model="models/text-embedding-004",
                 contents=prompt
             )
             query_vector = embed_result.embeddings[0].values
