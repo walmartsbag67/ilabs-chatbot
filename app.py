@@ -29,15 +29,17 @@ def get_base64(file_path):
 @st.cache_resource
 def init_connections():
     try:
-        # Gemini Client with v1beta versioning
+        # Gemini Client
         client = genai.Client(
-            api_key=st.secrets["GEMINI_API_KEY"],
-            http_options={'api_version': 'v1beta'}
+            api_key=st.secrets["GEMINI_API_KEY"]
         )
+
         # Pinecone
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
         index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
+
         return client, index
+
     except Exception as e:
         st.error(f"Connection Error: {e}")
         return None, None
