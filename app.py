@@ -72,6 +72,11 @@ with col2:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# --- 4. CHAT INTERFACE ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -82,16 +87,16 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-            try:
-                # 1. Generate Embeddings (Using the correct v1 model name)
-                embed_result = client.models.embed_content(
-                    model="gemini-embedding-2",  # Updated for 2026 v1 API
-                    contents=prompt
-                )
-                
-                query_vector = embed_result.embeddings[0].values
+        try:
+            # 1. Generate Embeddings (Using stable v1 name)
+            embed_result = client.models.embed_content(
+                model="text-embedding-004",  # Most stable for text-only search
+                contents=prompt
+            )
             
-            # 2. Search Pinecone
+            query_vector = embed_result.embeddings[0].values
+            
+            # 2. Search Pinecone (Correctly indented)
             search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
             manual_context = search_results['matches'][0]['metadata']['text'] if search_results['matches'] else ""
 
@@ -103,7 +108,7 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
             1. You are a CLOSED-KNOWLEDGE system.
             2. Use ONLY the information in the "LOCAL DATA" section below.
             3. If the answer is NOT in the LOCAL DATA, you MUST say: "I'm sorry, I don't have information on that specific topic in my current database."
-            4. DO NOT mention "mandatory training", "certification", or "file preparation" unless explicitly written in LOCAL DATA.
+            4. DO NOT mention "mandatory training" unless explicitly written in LOCAL DATA.
             5. For any question about booking, provide only the URL and rules from LOCAL DATA.
             
             # LOCAL DATA (model.md):
@@ -113,9 +118,9 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
             {manual_context}
             """
 
-            # 4. Generate Content
+            # 4. Generate Content (Using stable v1 model)
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.5-flash",  # Current stable model for v1
                 contents=prompt,
                 config={
                     'system_instruction': system_instruction,
