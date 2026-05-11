@@ -132,13 +132,3 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
         except Exception as e:
             st.error(f"Error generating response: {e}")
 
-# --- 5. FLOATING WIDGET ---
-logo_data = get_base64("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png")
-if logo_data:
-    st.markdown(f"""
-        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 100;">
-            <div style="width: 60px; height: 60px; background: #ed1c24; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                <img src="data:image/png;base64,{logo_data}" style="width: 35px; filter: brightness(0) invert(1);">
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
