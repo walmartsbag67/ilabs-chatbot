@@ -32,7 +32,7 @@ def init_connections():
         # Gemini Client with v1beta versioning
         client = genai.Client(
             api_key=st.secrets["GEMINI_API_KEY"],
-            http_options={'api_version': 'v1'}
+            http_options={'api_version': 'v1beta'}
         )
         # Pinecone
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
@@ -84,11 +84,9 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
         try:
             # 1. RAG Search (768-dim)
             embed_result = client.models.embed_content(
-        model="models/gemini-embedding-exp-0612" if "exp" in prompt else "models/embedding-001", 
-        # Actually, te most stable string for v1 is usually:
-        model="gemini-embedding-001",
-        contents=prompt
-    )
+                model="text-embedding-004",
+                contents=prompt
+            )
             query_vector = embed_result.embeddings[0].values
             search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
             manual_context = search_results['matches'][0]['metadata']['text'] if search_results['matches'] else ""
