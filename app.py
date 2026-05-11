@@ -84,9 +84,11 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
         try:
             # 1. RAG Search (768-dim)
             embed_result = client.models.embed_content(
-                model="gemini-embedding-001",
-                contents=prompt
-            )
+        model="models/gemini-embedding-exp-0612" if "exp" in prompt else "models/embedding-001", 
+        # Actually, the most stable string for v1 is usually:
+        model="models/embedding-001",
+        contents=prompt
+    )
             query_vector = embed_result.embeddings[0].values
             search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
             manual_context = search_results['matches'][0]['metadata']['text'] if search_results['matches'] else ""
