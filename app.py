@@ -82,14 +82,14 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        try:
-            # 1. Generate Embeddings (Using the most compatible alias for v1)
-            embed_result = client.models.embed_content(
-                model="text-embedding-004", # Try this first
-                contents=prompt
-            )
-            
-            query_vector = embed_result.embeddings[0].values
+            try:
+                # 1. Generate Embeddings (Using the correct v1 model name)
+                embed_result = client.models.embed_content(
+                    model="gemini-embedding-2",  # Updated for 2026 v1 API
+                    contents=prompt
+                )
+                
+                query_vector = embed_result.embeddings[0].values
             
             # 2. Search Pinecone
             search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
