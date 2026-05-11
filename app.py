@@ -32,7 +32,7 @@ def init_connections():
         # Gemini Client with v1beta versioning
         client = genai.Client(
             api_key=st.secrets["GEMINI_API_KEY"],
-            http_options={'api_version': 'v1'}
+            http_options={'api_version': 'v1beta'}
         )
         # Pinecone
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
