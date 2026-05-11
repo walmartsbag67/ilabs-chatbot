@@ -29,21 +29,19 @@ def get_base64(file_path):
 @st.cache_resource
 def init_connections():
     try:
+        # Initialize Gemini
         client = genai.Client(
             api_key=st.secrets["GEMINI_API_KEY"],
-            http_options={'api_version': 'v1'} # Using the stable v1
+            http_options={'api_version': 'v1'} 
         )
-        # ... rest of your pinecone setup ...
+        # Initialize Pinecone
+        pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
+        index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
+        
         return client, index
-    
-    
     except Exception as e:
         st.error(f"Connection Error: {e}")
         return None, None
-    
-    
-    
-       
 
 client, index = init_connections()
 core_knowledge = load_core_knowledge()
@@ -85,17 +83,19 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
 
     with st.chat_message("assistant"):
         try:
+            # 1. Generate Embeddings (Fixed repeated keyword error)
             embed_result = client.models.embed_content(
-        model="models/gemini-embedding-exp-0612" if "exp" in prompt else "models/embedding-001", 
-        # Actually, the most stable string for v1 is usually:
-        model="models/embedding-001",
-        contents=prompt
-    )
+                model="models/embedding-001",
+                contents=prompt
+            )
+            
             query_vector = embed_result.embeddings[0].values
+            
+            # 2. Search Pinecone
             search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
             manual_context = search_results['matches'][0]['metadata']['text'] if search_results['matches'] else ""
 
-            # 2. THE STRICT SYSTEM INSTRUCTION
+            # 3. System Instruction
             system_instruction = f"""
             You are the Sunway iLabs Smart Assistant.
             
@@ -113,7 +113,7 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
             {manual_context}
             """
 
-            # 3. Generate Content with Literal Constraints
+            # 4. Generate Content
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
