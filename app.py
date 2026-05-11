@@ -83,9 +83,9 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
 
     with st.chat_message("assistant"):
         try:
-            # 1. Generate Embeddings (Fixed repeated keyword error)
+            # 1. Generate Embeddings (Updated to the standard v1 model)
             embed_result = client.models.embed_content(
-                model="models/embedding-001",
+                model="text-embedding-004", 
                 contents=prompt
             )
             
