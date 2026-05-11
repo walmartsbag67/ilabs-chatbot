@@ -29,20 +29,21 @@ def get_base64(file_path):
 @st.cache_resource
 def init_connections():
     try:
-        # Gemini Client
         client = genai.Client(
-            api_key=st.secrets["GEMINI_API_KEY"]
+            api_key=st.secrets["GEMINI_API_KEY"],
+            http_options={'api_version': 'v1'} # Using the stable v1
         )
-
-        # Pinecone
-        pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
-        index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
-
+        # ... rest of your pinecone setup ...
         return client, index
-
+    
+    
     except Exception as e:
         st.error(f"Connection Error: {e}")
         return None, None
+    
+    
+    
+       
 
 client, index = init_connections()
 core_knowledge = load_core_knowledge()
@@ -59,7 +60,7 @@ st.markdown("""
 col1, col2 = st.columns([0.15, 0.85])
 with col1:
     if os.path.exists("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"):
-        st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=85)
+        st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=80)
 
 with col2:
     st.markdown("""
@@ -77,18 +78,19 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Ask about equipment or bookings..."):
+if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            # 1. RAG Search (768-dim)
             embed_result = client.models.embed_content(
-                model="text-embedding-004",
-                contents=prompt
-            )
+        model="models/gemini-embedding-exp-0612" if "exp" in prompt else "models/embedding-001", 
+        # Actually, the most stable string for v1 is usually:
+        model="models/embedding-001",
+        contents=prompt
+    )
             query_vector = embed_result.embeddings[0].values
             search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
             manual_context = search_results['matches'][0]['metadata']['text'] if search_results['matches'] else ""
@@ -118,7 +120,7 @@ if prompt := st.chat_input("Ask about equipment or bookings..."):
                 config={
                     'system_instruction': system_instruction,
                     'temperature': 0.0,
-                    'max_output_tokens': 250
+                    'max_output_tokens': 200
                 }
             )
             
