@@ -66,22 +66,7 @@ client, index = init_connections()
 core_knowledge = load_core_knowledge()
 
 # --- 3. UI STYLING & LAYOUT ---
-# --- 🛠️ TEMPORARY KNOWLEDGE BASE DEBUGGER ---
-with st.sidebar.expander("🔍 Debug Knowledge Sources"):
-    st.write("**1. Direct local file check (model.md):**")
-    if os.path.exists('model.md'):
-        st.success("✅ model.md found successfully!")
-        # Show the first 300 characters of your file to confirm it has text
-        st.text_area("File Content Preview:", core_knowledge[:300], height=100)
-    else:
-        st.error("❌ model.md NOT found in root directory!")
-        
-    st.write("---")
-    st.write("**2. Total database matches retrieved last turn:**")
-    if 'combined_context' in locals() or 'combined_context' in globals():
-        st.text_area("Pinecone Vector Context:", combined_context, height=150)
-    else:
-        st.info("No active query context loaded yet. Send a message to test.")
+# --- 3. UI STYLING & LAYOUT ---
 st.markdown("""
     <style>
     .main { background-color: #f5f7f9; }
@@ -90,10 +75,33 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# Updated layout using custom HTML flexbox for pixel-perfect aspect ratios
+logo_file = "Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"
+
+if os.path.exists(logo_file):
+    # Using a clean inline flexbox to align the logo and header perfectly side-by-side
+    st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+            <img src="data:image/png;base64,{get_base64(logo_file)}" style="height: 75px; width: auto; object-fit: contain;">
+            <div>
+                <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700;">Sunway iLabs AI Assistant</h1>
+                <p style="margin: 0; color: #808495; font-size: 1rem;">Grounded Knowledge System for Makerspace Labs</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+else:
+    # Fallback header styling if the image file is missing
+    st.markdown("""
+        <div style='margin-top: 10px;'>
+            <h1 style='margin: 0;'>Sunway iLabs AI Assistant</h1>
+            <p style='color: #808495;'>Grounded Knowledge System for Makerspace Labs</p>
+        </div>
+        """, unsafe_allow_html=True)
+
 col1, col2 = st.columns([0.15, 0.85])
 with col1:
     if os.path.exists("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"):
-        st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=80)
+        st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=50, height=1000)
 
 with col2:
     st.markdown("""
