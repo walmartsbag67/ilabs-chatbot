@@ -99,9 +99,6 @@ else:
         """, unsafe_allow_html=True)
 
 col1, col2 = st.columns([0.15, 0.85])
-with col1:
-    if os.path.exists("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"):
-        st.image("Sunway-iLabs-Logo-AI-2025-837x1024 (1).png", width=50, height=1000)
 
 with col2:
     st.markdown("""
