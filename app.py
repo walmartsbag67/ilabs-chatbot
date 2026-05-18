@@ -3,6 +3,7 @@ import os
 import base64
 from google import genai
 from google.genai import types
+from google.oauth2 import service_account
 from pinecone import Pinecone
 
 # --- 1. CONFIGURATION & LOGIC LOADERS ---
@@ -30,9 +31,27 @@ def get_base64(file_path):
 @st.cache_resource
 def init_connections():
     try:
-        # Initialize Gemini using the modern GenAI SDK
-        client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"]) 
-        # Initialize Pinecone
+        # 1. Map your online Streamlit Secrets directly into an authentication dictionary
+        service_account_info = {
+            "type": "service_account",
+            "project_id": st.secrets["GCP_PROJECT_ID"],
+            "private_key": st.secrets["GCP_PRIVATE_KEY"].replace(r'\n', '\n'), # Corrects the inline multi-line breaks
+            "client_email": st.secrets["GCP_CLIENT_EMAIL"],
+            "token_uri": "https://oauth2.googleapis.com/token",
+        }
+        
+        # 2. Parse the dictionary into an official Google Service Account Credential object
+        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        
+        # 3. Initialize the Gemini Client routing explicitly via Vertex AI using your credentials
+        client = genai.Client(
+            vertexai=True,
+            project=st.secrets["GCP_PROJECT_ID"],
+            location=st.secrets["GCP_LOCATION"],
+            credentials=credentials
+        )
+        
+        # 4. Initialize Pinecone Vector Database
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
         index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
         
@@ -88,7 +107,6 @@ def get_query_embedding(user_query: str) -> list:
         )
         return response.embeddings[0].values
     except Exception as e:
-        # TEMPORARY: Show the exact error on the UI to diagnose
         st.error(f"Detailed Embedding API Error: {e}")
         return None
 
