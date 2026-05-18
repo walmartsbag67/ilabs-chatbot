@@ -31,9 +31,7 @@ def get_base64(file_path):
 def init_connections():
     try:
         # Initialize Gemini using the modern GenAI SDK
-        client = genai.Client(
-            api_key=st.secrets["GEMINI_API_KEY"],
-        )
+        client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"]) 
         # Initialize Pinecone
         pc = Pinecone(api_key=st.secrets["PINECONE_API_KEY"])
         index = pc.Index(st.secrets["PINECONE_INDEX_NAME"])
