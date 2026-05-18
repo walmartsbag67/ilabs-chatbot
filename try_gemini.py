@@ -6,7 +6,7 @@ PROJECT_ID = "project-67f295a8-2e8f-45e2-a81"
 client = genai.Client(
     vertexai=True, 
     project=PROJECT_ID, 
-    location="us-central1"
+    location="asia-southeast1"
 )
     
 try:

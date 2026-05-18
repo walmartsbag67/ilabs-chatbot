@@ -1,3 +1,4 @@
+# 3D Printer
 1. Safety First
 Before operating the printer, you must acknowledge the following safety hazards to prevent personal injury or damage to the machine
 :
@@ -53,7 +54,7 @@ Under-extrusion: If you see missing layers or random holes, it may be due to a p
 Clogged Print Core: If no material flows for 10 minutes, the core is likely clogged and requires a “hot and cold pull” cleaning procedure
 .
 
-LASER CUTTER
+# LASER CUTTER
 
 1. Preparation and File Handling
 Software: Designs must be prepared in the designated controlling software (as detailed in the separate Software Operating Manual) and transmitted to the machine's MPC6515 controller
@@ -99,7 +100,7 @@ Rest Cycles: After three consecutive hours of work, the machine must be shut dow
 Troubleshooting Depth: If the cut or engraving is too shallow, check for polluted lenses, increase power, or decrease the processing speed
 .
 
-iLabs
+# Sunway
 
 Sunway iLabs is a comprehensive innovation ecosystem designed for entrepreneurs at all stages, serving as the innovation lab for both the Sunway Group and Sunway University
 . Its core mission is centered on a three-part framework: Inspire, Build, and Scale
@@ -140,3 +141,8 @@ Resources: A dedicated Newsroom for updates and a presence on LinkedIn, Instagra
 .
 Legal Entity: Sunway Innovation Labs (1420603-K)
 .
+
+# BOOKING EQUIPMENT
+- **General Access:** All Sunway students must book equipment via the official iLabs website before use.
+- **Equipment:** 3D Printer, Laser Cutter, Sewing Machine.
+- **URL:** [(https://bookings.cloud.microsoft/book/iLabsFoundyMakerspaceFacilitiesBooking@sunway.edu.my/?ismsaljsauthenabled=true)]

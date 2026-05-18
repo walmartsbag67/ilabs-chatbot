@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import base64
 from google import genai
+from google.genai import types
 from pinecone import Pinecone
 
 # --- 1. CONFIGURATION & LOGIC LOADERS ---
@@ -29,7 +30,7 @@ def get_base64(file_path):
 @st.cache_resource
 def init_connections():
     try:
-        # Initialize Gemini
+        # Initialize Gemini using the modern GenAI SDK
         client = genai.Client(
             api_key=st.secrets["GEMINI_API_KEY"],
         )
@@ -67,11 +68,7 @@ with col2:
         </div>
         """, unsafe_allow_html=True)
 
-# --- 4. CHAT INTERFACE ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# --- 4. CHAT INTERFACE ---
+# --- 4. CHAT HISTORY INITIALIZATION & DISPLAY ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -80,56 +77,89 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# Helper function to get query embeddings (placed in general scope)
+def get_query_embedding(user_query: str) -> list:
+    try:
+        response = client.models.embed_content(
+            model="gemini-embedding-001",
+            contents=user_query,
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_QUERY",  # Optimizes for conversational questions
+                output_dimensionality=768     # Matches your existing 768-dim Pinecone index
+            )
+        )
+        return response.embeddings[0].values
+    except Exception as e:
+        print(f"Error generating embedding: {e}")
+        return None
+
+# --- 5. STREAMLIT CHAT EXECUTION LOGIC ---
 if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant"):
-        try:
-            # 1. Generate Embeddings (Using stable v1 name)
-            embed_result = client.models.embed_content(
-                model="text-embedding-004",  # Most stable for text-only search
-                contents=prompt
-            )
-            
-            query_vector = embed_result.embeddings[0].values
-            
-            # 2. Search Pinecone (Correctly indented)
-            search_results = index.query(vector=query_vector, top_k=1, include_metadata=True)
-            manual_context = search_results['matches'][0]['metadata']['text'] if search_results['matches'] else ""
+    with st.spinner("Searching knowledge base..."):
+        # Step A: Get 768-dim embedding vector using gemini-embedding-001
+        query_vector = get_query_embedding(prompt)
+        
+        if query_vector is None:
+            st.error("Failed to process text embedding.")
+        else:
+            # Step B: Query Pinecone Vector Database
+            combined_context = ""
+            try:
+                search_results = index.query(
+                    vector=query_vector,
+                    top_k=3,
+                    include_metadata=True
+                )
+                
+                # Extract text chunks from database matches
+                contexts = [
+                    match['metadata']['text'] 
+                    for match in search_results['matches'] 
+                    if 'text' in match['metadata']
+                ]
+                combined_context = "\n\n".join(contexts)
+                
+            except Exception as e:
+                st.error(f"Pinecone query failed: {str(e)}")
 
-            # 3. System Instruction
-            system_instruction = f"""
-            You are the Sunway iLabs Smart Assistant.
-            
-            # STRICT OPERATING RULES:
-            1. You are a CLOSED-KNOWLEDGE system.
-            2. Use ONLY the information in the "LOCAL DATA" section below.
-            3. If the answer is NOT in the LOCAL DATA, you MUST say: "I'm sorry, I don't have information on that specific topic in my current database."
-            4. DO NOT mention "mandatory training" unless explicitly written in LOCAL DATA.
-            5. For any question about booking, provide only the URL and rules from LOCAL DATA.
-            
-            # LOCAL DATA (model.md):
-            {core_knowledge}
-            
-            # ADDITIONAL CONTEXT:
-            {manual_context}
-            """
+            # Step C: Build System Instruction & Run Inference via Gemini
+            try:
+                system_instruction = f"""
+                You are the Sunway iLabs Smart Assistant.
+                
+                # STRICT OPERATING RULES:
+                1. You are a CLOSED-KNOWLEDGE system.
+                2. Use ONLY the information in the "LOCAL DATA" and "VECTOR CONTEXT" sections below.
+                3. If the answer is NOT in the provided data, you MUST say: "I'm sorry, I don't have information on that specific topic in my current database."
+                4. DO NOT mention "mandatory training" unless explicitly written in the data below.
+                5. For any question about booking, provide only the URL and rules from the data below.
+                
+                # LOCAL DATA (model.md):
+                {core_knowledge}
+                
+                # VECTOR CONTEXT (Pinecone Database):
+                {combined_context}
+                """
 
-            # 4. Generate Content (Using stable v1 model)
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",  # Current stable model for v1
-                contents=prompt,
-                config={
-                    'system_instruction': system_instruction,
-                    'temperature': 0.0,
-                    'max_output_tokens': 200
-                }
-            )
-            
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
+                # Generate Answer using Gemini 2.5 Flash
+                response = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt,
+                    config={
+                        'system_instruction': system_instruction,
+                        'temperature': 0.0,
+                        'max_output_tokens': 200
+                    }
+                )
+                
+                # Render and save assistant response
+                with st.chat_message("assistant"):
+                    st.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
 
-        except Exception as e:
-            st.error(f"Error generating response: {e}")
+            except Exception as e:
+                st.error(f"Error generating response: {e}")
