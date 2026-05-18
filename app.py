@@ -98,15 +98,7 @@ else:
         </div>
         """, unsafe_allow_html=True)
 
-col1, col2 = st.columns([0.15, 0.85])
 
-with col2:
-    st.markdown("""
-        <div style='margin-top: 10px;'>
-            <h1 style='margin: 0;'>Sunway iLabs AI Assistant</h1>
-            <p style='color: #808495;'>Grounded Knowledge System for Makerspace Labs</p>
-        </div>
-        """, unsafe_allow_html=True)
 
 # --- 4. CHAT HISTORY INITIALIZATION & DISPLAY ---
 if "messages" not in st.session_state:
