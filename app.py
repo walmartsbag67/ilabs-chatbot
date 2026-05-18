@@ -65,7 +65,7 @@ def init_connections():
 client, index = init_connections()
 core_knowledge = load_core_knowledge()
 
-t.markdown("""
+st.markdown("""
     <style>
     .main { background-color: #f5f7f9; }
     .stChatMessage { border-radius: 15px; }
