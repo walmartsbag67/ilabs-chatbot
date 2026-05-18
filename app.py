@@ -99,12 +99,12 @@ for message in st.session_state.messages:
 # Helper function to get query embeddings
 def get_query_embedding(user_query: str) -> list:
     try:
+        # Upgraded to text-embedding-004 for native, clean Vertex AI integration
         response = client.models.embed_content(
-            model="gemini-embedding-001",
+            model="text-embedding-004",
             contents=user_query,
             config=types.EmbedContentConfig(
-                task_type="RETRIEVAL_QUERY",
-                output_dimensionality=768
+                task_type="RETRIEVAL_QUERY"
             )
         )
         return response.embeddings[0].values
@@ -119,7 +119,7 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
         st.markdown(prompt)
 
     with st.spinner("Searching knowledge base..."):
-        # Step A: Get 768-dim embedding vector using gemini-embedding-001
+        # Step A: Get embedding vector
         query_vector = get_query_embedding(prompt)
         
         if query_vector is None:
@@ -134,12 +134,18 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
                     include_metadata=True
                 )
                 
-                # Extract text chunks from database matches
-                contexts = [
-                    match['metadata']['text'] 
-                    for match in search_results['matches'] 
-                    if 'text' in match['metadata']
-                ]
+                # Extract text chunks from database matches safely checking alternate dictionary variants
+                contexts = []
+                for match in search_results.get('matches', []):
+                    metadata = match.get('metadata', {})
+                    # Checked standard key mappings to safeguard missing payloads
+                    if 'text' in metadata:
+                        contexts.append(metadata['text'])
+                    elif 'content' in metadata:
+                        contexts.append(metadata['content'])
+                    elif 'context' in metadata:
+                        contexts.append(metadata['context'])
+                        
                 combined_context = "\n\n".join(contexts)
                 
             except Exception as e:
