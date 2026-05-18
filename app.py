@@ -65,9 +65,7 @@ def init_connections():
 client, index = init_connections()
 core_knowledge = load_core_knowledge()
 
-# --- 3. UI STYLING & LAYOUT ---
-# --- 3. UI STYLING & LAYOUT ---
-st.markdown("""
+t.markdown("""
     <style>
     .main { background-color: #f5f7f9; }
     .stChatMessage { border-radius: 15px; }
@@ -75,22 +73,22 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Updated layout using custom HTML flexbox for pixel-perfect aspect ratios
+# Full-aspect resolution loader
 logo_file = "Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"
 
 if os.path.exists(logo_file):
-    # Using a clean inline flexbox to align the logo and header perfectly side-by-side
+    # Added padding and a bounding-box restriction to prevent edge cropping
     st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
-            <img src="data:image/png;base64,{get_base64(logo_file)}" style="height: 75px; width: auto; object-fit: contain;">
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding: 5px 0;">
+            <img src="data:image/png;base64,{get_base64(logo_file)}" 
+                 style="height: 85px; width: auto; object-fit: contain; padding: 2px; max-width: 100%;">
             <div>
-                <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700;">Sunway iLabs AI Assistant</h1>
-                <p style="margin: 0; color: #808495; font-size: 1rem;">Grounded Knowledge System for Makerspace Labs</p>
+                <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700; line-height: 1.2;">Sunway iLabs AI Assistant</h1>
+                <p style="margin: 5px 0 0 0; color: #808495; font-size: 1rem;">Grounded Knowledge System for Makerspace Labs</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
 else:
-    # Fallback header styling if the image file is missing
     st.markdown("""
         <div style='margin-top: 10px;'>
             <h1 style='margin: 0;'>Sunway iLabs AI Assistant</h1>
