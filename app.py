@@ -40,8 +40,10 @@ def init_connections():
             "token_uri": "https://oauth2.googleapis.com/token",
         }
         
-        # 2. Parse the dictionary into an official Google Service Account Credential object
-        credentials = service_account.Credentials.from_service_account_info(service_account_info)
+        # 2. Parse the dictionary and explicitly add the Cloud Platform scope to prevent SDK authentication bugs
+        credentials = service_account.Credentials.from_service_account_info(
+            service_account_info
+        ).with_scopes(['https://www.googleapis.com/auth/cloud-platform'])
         
         # 3. Initialize the Gemini Client routing explicitly via Vertex AI using your credentials
         client = genai.Client(
@@ -94,7 +96,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Helper function to get query embeddings (placed in general scope)
+# Helper function to get query embeddings
 def get_query_embedding(user_query: str) -> list:
     try:
         response = client.models.embed_content(
