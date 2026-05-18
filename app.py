@@ -151,7 +151,7 @@ if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
                     config={
                         'system_instruction': system_instruction,
                         'temperature': 0.0,
-                        'max_output_tokens': 200
+                        'max_output_tokens': 1000
                     }
                 )
                 
