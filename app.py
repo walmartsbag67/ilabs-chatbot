@@ -66,6 +66,22 @@ client, index = init_connections()
 core_knowledge = load_core_knowledge()
 
 # --- 3. UI STYLING & LAYOUT ---
+# --- 🛠️ TEMPORARY KNOWLEDGE BASE DEBUGGER ---
+with st.sidebar.expander("🔍 Debug Knowledge Sources"):
+    st.write("**1. Direct local file check (model.md):**")
+    if os.path.exists('model.md'):
+        st.success("✅ model.md found successfully!")
+        # Show the first 300 characters of your file to confirm it has text
+        st.text_area("File Content Preview:", core_knowledge[:300], height=100)
+    else:
+        st.error("❌ model.md NOT found in root directory!")
+        
+    st.write("---")
+    st.write("**2. Total database matches retrieved last turn:**")
+    if 'combined_context' in locals() or 'combined_context' in globals():
+        st.text_area("Pinecone Vector Context:", combined_context, height=150)
+    else:
+        st.info("No active query context loaded yet. Send a message to test.")
 st.markdown("""
     <style>
     .main { background-color: #f5f7f9; }
