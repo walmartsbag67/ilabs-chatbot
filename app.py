@@ -82,13 +82,14 @@ def get_query_embedding(user_query: str) -> list:
             model="gemini-embedding-001",
             contents=user_query,
             config=types.EmbedContentConfig(
-                task_type="RETRIEVAL_QUERY",  # Optimizes for conversational questions
-                output_dimensionality=768     # Matches your existing 768-dim Pinecone index
+                task_type="RETRIEVAL_QUERY",
+                output_dimensionality=768
             )
         )
         return response.embeddings[0].values
     except Exception as e:
-        print(f"Error generating embedding: {e}")
+        # TEMPORARY: Show the exact error on the UI to diagnose
+        st.error(f"Detailed Embedding API Error: {e}")
         return None
 
 # --- 5. STREAMLIT CHAT EXECUTION LOGIC ---
