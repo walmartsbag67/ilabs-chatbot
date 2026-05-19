@@ -67,7 +67,7 @@ core_knowledge = load_core_knowledge()
 
 st.markdown("""
     <style>
-    .main { background-color: #001C55; }
+    .main { background-color: #004BFF; }
     .stChatMessage { border-radius: 15px; }
     .block-container { padding-top: 1rem !important; }
     </style>
