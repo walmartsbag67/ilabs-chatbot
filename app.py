@@ -83,7 +83,7 @@ if os.path.exists(logo_file):
             <img src="data:image/png;base64,{get_base64(logo_file)}" 
                  style="height: 85px; width: auto; object-fit: contain; padding: 2px; max-width: 100%;">
             <div>
-                <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700; line-height: 1.2;">Sunway iLabs AI Assistant</h1>
+                <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700; line-height: 1.2;">Sunway iLabs Chatbot</h1>
                 <p style="margin: 5px 0 0 0; color: #808495; font-size: 1rem;">Grounded Knowledge System for Makerspace Labs</p>
             </div>
         </div>
