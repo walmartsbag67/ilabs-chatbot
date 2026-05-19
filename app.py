@@ -66,17 +66,13 @@ client, index = init_connections()
 core_knowledge = load_core_knowledge()
 
 # --- 3. UI STYLING & LAYOUT ---
+# --- 3. UI STYLING & LAYOUT ---
 st.markdown("""
     <style>
-    /* Add !important right before the semicolon to force the color override */
-    .main { background-color: #1a1c23 !important; } 
     .stChatMessage { border-radius: 15px; }
     .block-container { padding-top: 1rem !important; }
     </style>
     """, unsafe_allow_html=True)
-
-# Full-aspect resolution loader
-logo_file = "Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"
 
 if os.path.exists(logo_file):
     # Added padding and a bounding-box restriction to prevent edge cropping

@@ -1,3 +1,4 @@
-.streamlit/
+.streamlit/secrets.toml
 .env
-__pycache__/
+.env copy
+makerspace-production-bot-7abdbb3eada1.json
