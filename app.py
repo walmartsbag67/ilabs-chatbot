@@ -84,7 +84,7 @@ if os.path.exists(logo_file):
                  style="height: 85px; width: auto; object-fit: contain; padding: 2px; max-width: 100%;">
             <div>
                 <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700; line-height: 1.2;">Sunway iLabs Chatbot</h1>
-                <p style="margin: 5px 0 0 0; color: #808495; font-size: 1rem;">Grounded Knowledge System for Makerspace Labs</p>
+                <p style="margin: 5px 0 0 0; color: #808495; font-size: 1rem;">Ask about Sunway iLabs, 3D Printer, Laser Cutter.</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -92,7 +92,7 @@ else:
     st.markdown("""
         <div style='margin-top: 10px;'>
             <h1 style='margin: 0;'>Sunway iLabs Chatbot</h1>
-            <p style='color: #808495;'>Grounded Knowledge System for Makerspace Labs</p>
+            <p style='color: #808495;'>Ask about Sunway iLabs, 3D Printer, Laser Cutter.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -124,7 +124,7 @@ def get_query_embedding(user_query: str) -> list:
         return None
 
 # --- 5. STREAMLIT CHAT EXECUTION LOGIC ---
-if prompt := st.chat_input("Ask about Sunway iLabs, 3D Printer, Laser Cutter."):
+if prompt := st.chat_input("..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
