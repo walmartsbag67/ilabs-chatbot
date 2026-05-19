@@ -68,7 +68,8 @@ core_knowledge = load_core_knowledge()
 # --- 3. UI STYLING & LAYOUT ---
 st.markdown("""
     <style>
-    .main { background-color: #1a1c23; }  /* 💡 THIS IS YOUR BACKGROUND COLOR */
+    /* Add !important right before the semicolon to force the color override */
+    .main { background-color: #1a1c23 !important; } 
     .stChatMessage { border-radius: 15px; }
     .block-container { padding-top: 1rem !important; }
     </style>
