@@ -65,10 +65,11 @@ def init_connections():
 client, index = init_connections()
 core_knowledge = load_core_knowledge()
 
+# --- 3. UI STYLING & LAYOUT ---
 st.markdown("""
     <style>
-    .main { background-color: #0e1117; }
-    .stChatMessage { border-radius: 30px; }
+    .main { background-color: #1a1c23; }  /* 💡 THIS IS YOUR BACKGROUND COLOR */
+    .stChatMessage { border-radius: 15px; }
     .block-container { padding-top: 1rem !important; }
     </style>
     """, unsafe_allow_html=True)
