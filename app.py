@@ -79,7 +79,7 @@ logo_file = "Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"
 if os.path.exists(logo_file):
     # Added padding and a bounding-box restriction to prevent edge cropping
     st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding: 5px 0;">
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding: 20px 0;">
             <img src="data:image/png;base64,{get_base64(logo_file)}" 
                  style="height: 85px; width: auto; object-fit: contain; padding: 2px; max-width: 100%;">
             <div>
@@ -91,7 +91,7 @@ if os.path.exists(logo_file):
 else:
     st.markdown("""
         <div style='margin-top: 10px;'>
-            <h1 style='margin: 0;'>Sunway iLabs AI Assistant</h1>
+            <h1 style='margin: 0;'>Sunway iLabs Chatbot</h1>
             <p style='color: #808495;'>Grounded Knowledge System for Makerspace Labs</p>
         </div>
         """, unsafe_allow_html=True)
