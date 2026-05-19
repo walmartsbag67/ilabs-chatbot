@@ -67,7 +67,7 @@ core_knowledge = load_core_knowledge()
 
 st.markdown("""
     <style>
-    .main { background-color: #f5f7f9; }
+    .main { background-color: #001C55; }
     .stChatMessage { border-radius: 15px; }
     .block-container { padding-top: 1rem !important; }
     </style>
@@ -81,7 +81,7 @@ if os.path.exists(logo_file):
     st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; padding: 20px 0;">
             <img src="data:image/png;base64,{get_base64(logo_file)}" 
-                 style="height: 85px; width: auto; object-fit: contain; padding: 2px; max-width: 100%;">
+                 style="height: 80px; width: auto; object-fit: contain; padding: 2px; max-width: 100%;">
             <div>
                 <h1 style="margin: 0; font-size: 2.2rem; font-weight: 700; line-height: 1.2;">Sunway iLabs Chatbot</h1>
                 <p style="margin: 5px 0 0 0; color: #808495; font-size: 1rem;">Ask about Sunway iLabs, 3D Printer, Laser Cutter.</p>
