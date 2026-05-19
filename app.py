@@ -66,13 +66,15 @@ client, index = init_connections()
 core_knowledge = load_core_knowledge()
 
 # --- 3. UI STYLING & LAYOUT ---
-# --- 3. UI STYLING & LAYOUT ---
 st.markdown("""
     <style>
     .stChatMessage { border-radius: 15px; }
     .block-container { padding-top: 1rem !important; }
     </style>
     """, unsafe_allow_html=True)
+
+# Full-aspect resolution loader
+logo_file = "Sunway-iLabs-Logo-AI-2025-837x1024 (1).png"
 
 if os.path.exists(logo_file):
     # Added padding and a bounding-box restriction to prevent edge cropping
